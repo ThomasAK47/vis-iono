@@ -1,0 +1,255 @@
+{
+  "fenomenos": [
+    {
+      "id": "flare",
+      "nome": "Flare Solar",
+      "icone": "☀️",
+      "cor": "#ffd54a",
+      "seg": "luz",
+      "segPos": 45,
+      "transitoLabel": "≈ 8,3 minutos (velocidade da luz)",
+      "transitoSegundos": 500,
+      "animDur": 3,
+      "medida": "Fluxo de raios-X GOES (0,1–0,8 nm) — classes A, B, C, M e X (W/m²)",
+      "definicao": "Explosão súbita na atmosfera solar que libera radiação eletromagnética em todo o espectro — raios-X e ultravioleta extremo (EUV) em especial. A radiação viaja à velocidade da luz e atinge apenas o lado diurno da Terra.",
+      "mecanismo": "Os fótons de raios-X/EUV ionizam instantaneamente o lado diurno da ionosfera (SID — Distúrbio Ionosférico Súbito), elevando a densidade eletrônica das camadas D e E e causando um salto repentino no TEC (SITEC).",
+      "efeitoGNSS": "Aumento abrupto do atraso de grupo e avanço de fase (salto de TEC) no hemisfério iluminado. Flares intensos podem vir acompanhados de rajadas de rádio solar em banda L, que interferem diretamente no receptor e derrubam a relação sinal/ruído (C/N₀).",
+      "faixaTipica": "Classe C: fraco · Classe M: moderado · Classe X: severo (X10+ = extremo)",
+      "fonte": "NOAA SWPC (satélites GOES)",
+      "fonteUrl": "https://www.swpc.noaa.gov/products/goes-x-ray-flux",
+      "efeitoCena": { "sun": 1.0, "flash": 1.0, "disturbance": 0.7, "tecBend": 0.8, "phaseScint": 0.3 }
+    },
+    {
+      "id": "sep",
+      "nome": "SEP — Prótons Energéticos",
+      "icone": "☄️",
+      "cor": "#e879f9",
+      "seg": "particulas",
+      "segPos": 50,
+      "transitoLabel": "≈ 20 min a poucas horas",
+      "transitoSegundos": 7200,
+      "animDur": 5,
+      "medida": "Fluxo de prótons ≥ 10 MeV (pfu) — escala S1 a S5 da NOAA",
+      "definicao": "Partículas Energéticas Solares: prótons acelerados a frações da velocidade da luz por flares intensos ou choques de CMEs. Os mais rápidos chegam em ~20 minutos; o grosso do fluxo, em algumas horas.",
+      "mecanismo": "Guiados pelo campo magnético terrestre, os prótons precipitam nas calotas polares e ionizam anomalamente a camada D, causando Absorção na Calota Polar (PCA) e perturbações em altas latitudes.",
+      "efeitoGNSS": "Efeito concentrado em altas latitudes: cintilação de fase e aumento de atraso em receptores polares. Para o Brasil o impacto direto é pequeno, mas os próprios satélites GNSS podem sofrer falhas eletrônicas (upsets) durante eventos fortes.",
+      "faixaTipica": "S1 (10 pfu): fraco · S3 (10³ pfu): forte · S5 (10⁵ pfu): extremo",
+      "fonte": "NOAA SWPC (satélites GOES)",
+      "fonteUrl": "https://www.swpc.noaa.gov/products/goes-proton-flux",
+      "efeitoCena": { "storm": 0.5, "poles": 1.0, "phaseScint": 0.5, "disturbance": 0.3 }
+    },
+    {
+      "id": "cme",
+      "nome": "CME — Ejeção de Massa Coronal",
+      "icone": "🌋",
+      "cor": "#fb7185",
+      "seg": "plasma",
+      "segPos": 32,
+      "transitoLabel": "≈ 15 h a 3 dias (400–2000 km/s)",
+      "transitoSegundos": 129600,
+      "animDur": 8,
+      "medida": "Velocidade e densidade do vento solar + componente Bz do campo magnético interplanetário (DSCOVR/ACE em L1)",
+      "definicao": "Nuvem gigante de plasma magnetizado ejetada da coroa solar. É o fenômeno com maior potencial de dano: quando o campo magnético embutido aponta para o sul (Bz negativo), acopla-se à magnetosfera e injeta energia em grande escala.",
+      "mecanismo": "O choque e a nuvem magnética comprimem a magnetosfera; a reconexão com Bz sul dispara tempestade geomagnética (Kp↑, Dst↓) e tempestade ionosférica: fases positiva (TEC↑) e negativa (TEC↓), campos elétricos de penetração que intensificam a anomalia equatorial e disparam bolhas de plasma sobre o Brasil.",
+      "efeitoGNSS": "Pacote completo de degradação: atraso de grupo variável com fortes gradientes espaciais de TEC (quebra RTK/DGPS), cintilação de amplitude (S4↑) e de fase (σφ↑) nas bolhas equatoriais, cycle slips e perda de rastreio (loss of lock) em tempestades severas.",
+      "faixaTipica": "G1 (Kp 5): fraca · G3 (Kp 7): forte · G5 (Kp 9): extrema",
+      "fonte": "NOAA SWPC (coronógrafos LASCO/SOHO + DSCOVR)",
+      "fonteUrl": "https://www.swpc.noaa.gov/products/real-time-solar-wind",
+      "efeitoCena": { "storm": 1.0, "disturbance": 1.0, "bubbles": 0.8, "ampScint": 0.8, "phaseScint": 0.8, "tecBend": 0.8, "lock": 0.8, "poles": 0.7 }
+    },
+    {
+      "id": "hss",
+      "nome": "Vento Solar Rápido (HSS)",
+      "icone": "💨",
+      "cor": "#5eead4",
+      "seg": "plasma",
+      "segPos": 74,
+      "transitoLabel": "≈ 2 a 4 dias (600–800 km/s)",
+      "transitoSegundos": 259200,
+      "animDur": 10,
+      "medida": "Velocidade do vento solar (km/s) medida em L1 (DSCOVR/ACE)",
+      "definicao": "Fluxo contínuo de vento solar rápido que escapa por buracos coronais. Ao alcançar o vento lento à frente, forma uma Região de Interação Corrotante (CIR) que se repete a cada ~27 dias, seguindo a rotação solar.",
+      "mecanismo": "A CIR comprime o campo magnético e produz tempestades geomagnéticas moderadas e recorrentes, com subtempestades que perturbam a ionosfera por vários dias seguidos.",
+      "efeitoGNSS": "Versão atenuada e prolongada da CME: perturbações moderadas de TEC, cintilação em altas latitudes e degradação intermitente de PPP/RTK durante dias.",
+      "faixaTipica": "Vento calmo: 300–400 km/s · HSS: 600–800 km/s",
+      "fonte": "NOAA SWPC (DSCOVR/ACE)",
+      "fonteUrl": "https://www.swpc.noaa.gov/products/real-time-solar-wind",
+      "efeitoCena": { "storm": 0.5, "disturbance": 0.5, "bubbles": 0.4, "ampScint": 0.4, "phaseScint": 0.4 }
+    }
+  ],
+  "indices": [
+    {
+      "id": "kp",
+      "nome": "Índice Kp",
+      "icone": "🧭",
+      "cor": "#f59e0b",
+      "categoria": "Geomagnético global",
+      "unidade": "0 a 9 (adimensional)",
+      "cadencia": "Janelas de 3 horas",
+      "definicao": "Mede o nível global de atividade geomagnética em janelas de 3 horas, numa escala de 0 a 9. É calculado a partir de 13 observatórios magnéticos distribuídos pelo mundo.",
+      "faixas": [
+        { "valor": "0 – 3", "nivel": "calmo", "desc": "Condições geomagnéticas calmas" },
+        { "valor": "4", "nivel": "moderado", "desc": "Condições ativas, atenção" },
+        { "valor": "5 – 7", "nivel": "alto", "desc": "Tempestade geomagnética (G1–G3)" },
+        { "valor": "8 – 9", "nivel": "severo", "desc": "Tempestade extrema — receptores podem perder o sinal completamente" }
+      ],
+      "efeitoGNSS": "A tempestade comprime a magnetosfera e perturba a ionosfera, podendo causar erros de vários metros no posicionamento. Em tempestades extremas (Kp ≥ 8), receptores podem perder o sinal completamente.",
+      "fonte": "GFZ Potsdam / NOAA SWPC",
+      "fonteUrl": "https://www.gfz-potsdam.de/en/kp-index/",
+      "efeitoCena": { "storm": 0.8, "disturbance": 0.6, "phaseScint": 0.4, "ampScint": 0.3, "tecBend": 0.4, "poles": 0.6 }
+    },
+    {
+      "id": "dst",
+      "nome": "Índice Dst",
+      "icone": "🧲",
+      "cor": "#f97316",
+      "categoria": "Geomagnético global",
+      "unidade": "nT (nanotesla)",
+      "cadencia": "Horária",
+      "definicao": "Mede distúrbios na componente horizontal do campo magnético terrestre, originados na corrente anelar equatorial. Em condições normais fica próximo de zero; durante tempestades cai abruptamente para valores negativos.",
+      "faixas": [
+        { "valor": "≈ 0 nT", "nivel": "calmo", "desc": "Condições normais" },
+        { "valor": "< −30 nT", "nivel": "moderado", "desc": "Tempestade fraca" },
+        { "valor": "< −100 nT", "nivel": "alto", "desc": "Tempestade forte" },
+        { "valor": "< −250 nT", "nivel": "severo", "desc": "Tempestade extrema" }
+      ],
+      "efeitoGNSS": "Quanto mais negativo o Dst, maior a perturbação ionosférica e o erro no sinal GNSS — gradientes de TEC degradam correções diferenciais e soluções de fase.",
+      "fonte": "WDC Kyoto",
+      "fonteUrl": "https://wdc.kugi.kyoto-u.ac.jp/dstdir/",
+      "efeitoCena": { "storm": 0.9, "disturbance": 0.7, "tecBend": 0.5, "ampScint": 0.3, "phaseScint": 0.4, "poles": 0.7 }
+    },
+    {
+      "id": "ksa",
+      "nome": "Índice Ksa",
+      "icone": "🌎",
+      "cor": "#4ade80",
+      "categoria": "Geomagnético regional — América do Sul",
+      "unidade": "0 a 9 (adimensional)",
+      "cadencia": "Janelas de 3 horas",
+      "definicao": "Índice de Atividade Geomagnética na América do Sul, desenvolvido pelo INPE através do laboratório EMBRACE. Indica as variações do campo magnético terrestre e a intensidade das tempestades solares que afetam o território brasileiro e arredores.",
+      "faixas": [
+        { "valor": "0 – 3", "nivel": "calmo", "desc": "Campo magnético regional calmo" },
+        { "valor": "4 – 5", "nivel": "moderado", "desc": "Atividade regional moderada" },
+        { "valor": "6 – 9", "nivel": "severo", "desc": "Tempestade afetando a região sul-americana" }
+      ],
+      "efeitoGNSS": "Versão regional do Kp: valores altos indicam perturbação ionosférica sobre o Brasil, com degradação de posicionamento justamente na região da anomalia equatorial.",
+      "fonte": "EMBRACE / INPE",
+      "fonteUrl": "http://www2.inpe.br/climaespacial/portal/",
+      "efeitoCena": { "storm": 0.7, "disturbance": 0.6, "bubbles": 0.4, "ampScint": 0.4 }
+    },
+    {
+      "id": "f107",
+      "nome": "Fluxo Solar F10.7",
+      "icone": "📡",
+      "cor": "#facc15",
+      "categoria": "Atividade solar",
+      "unidade": "sfu (unidades de fluxo solar)",
+      "cadencia": "Diária",
+      "definicao": "Mede a intensidade do ruído de rádio solar em 10,7 cm de comprimento de onda. É um indicador-chave da atividade solar geral, com forte correlação com a emissão de ultravioleta extremo (EUV) — a principal responsável pela ionização da ionosfera.",
+      "faixas": [
+        { "valor": "< 100 sfu", "nivel": "calmo", "desc": "Sol calmo" },
+        { "valor": "100 – 150 sfu", "nivel": "moderado", "desc": "Atividade moderada" },
+        { "valor": "> 150 sfu", "nivel": "alto", "desc": "Ionosfera mais densa, maiores erros de refração" }
+      ],
+      "efeitoGNSS": "Valores altos indicam ionosfera mais densa e sujeita a maiores erros de refração no sinal GNSS — o atraso ionosférico médio cresce com o ciclo solar.",
+      "fonte": "NOAA SWPC / DRAO Penticton",
+      "fonteUrl": "https://www.swpc.noaa.gov/products/solar-cycle-progression",
+      "efeitoCena": { "sun": 0.9, "disturbance": 0.4, "tecBend": 0.5 }
+    },
+    {
+      "id": "fof2",
+      "nome": "foF2",
+      "icone": "📶",
+      "cor": "#38bdf8",
+      "categoria": "Densidade da ionosfera",
+      "unidade": "MHz",
+      "cadencia": "15 min (ionossondas)",
+      "definicao": "Frequência crítica da camada F2: a maior frequência de rádio refletida verticalmente pela ionosfera. É um proxy direto da densidade eletrônica máxima (NmF2) — quanto maior o foF2, mais densa a ionosfera no pico da camada F2.",
+      "faixas": [
+        { "valor": "< 5 MHz", "nivel": "calmo", "desc": "Baixa densidade (noite, mínimo solar)" },
+        { "valor": "5 – 10 MHz", "nivel": "moderado", "desc": "Densidade moderada" },
+        { "valor": "> 10 MHz", "nivel": "alto", "desc": "Alta densidade (dia, máximo solar) — maior atraso no GNSS" }
+      ],
+      "efeitoGNSS": "Correlaciona diretamente com o atraso ionosférico: NmF2 alto significa mais elétrons no caminho do sinal, aumentando o atraso de grupo. Quedas ou subidas bruscas de foF2 revelam tempestades ionosféricas em curso.",
+      "fonte": "Rede de ionossondas (Digissondas) EMBRACE / INPE",
+      "fonteUrl": "http://www2.inpe.br/climaespacial/portal/",
+      "efeitoCena": { "disturbance": 0.5, "tecBend": 0.6 }
+    },
+    {
+      "id": "vtec",
+      "nome": "VTEC",
+      "icone": "🛰️",
+      "cor": "#818cf8",
+      "categoria": "Conteúdo eletrônico total",
+      "unidade": "TECU (10¹⁶ elétrons/m²)",
+      "cadencia": "Mapas a cada 10 min",
+      "definicao": "Mede a quantidade total de elétrons livres numa coluna vertical da ionosfera. É a principal causa do atraso de propagação do sinal GNSS: cada TECU corresponde a cerca de 16 cm de erro em L1 para receptores de uma frequência.",
+      "faixas": [
+        { "valor": "< 20 TECU", "nivel": "calmo", "desc": "Ionosfera tranquila" },
+        { "valor": "20 – 60 TECU", "nivel": "moderado", "desc": "Erro crescente; gradientes afetam correções diferenciais" },
+        { "valor": "> 60 TECU", "nivel": "severo", "desc": "Erro pode superar 10 m sem correção (máximos solares e tempestades)" }
+      ],
+      "efeitoGNSS": "Atraso de grupo proporcional ao TEC no caminho do sinal (≈16 cm por TECU em L1). Gradientes espaciais fortes quebram a hipótese de erro comum entre estações, degradando RTK e DGPS.",
+      "fonte": "EMBRACE/INPE · IGS · NASA CDDIS",
+      "fonteUrl": "http://www2.inpe.br/climaespacial/portal/tec-mapas/",
+      "efeitoCena": { "disturbance": 0.6, "tecBend": 0.9 }
+    },
+    {
+      "id": "roti",
+      "nome": "ROTI",
+      "icone": "🫧",
+      "cor": "#a78bfa",
+      "categoria": "Irregularidades do plasma",
+      "unidade": "TECU/min",
+      "cadencia": "Janelas de 5 min",
+      "definicao": "Mede a rapidez com que o TEC varia, calculado como o desvio-padrão da taxa de variação do TEC em janelas de 5 minutos. É o principal indicador de irregularidades ionosféricas de média escala — as mesmas estruturas que causam cintilação.",
+      "faixas": [
+        { "valor": "< 0,25", "nivel": "calmo", "desc": "Ionosfera homogênea" },
+        { "valor": "0,25 – 0,5", "nivel": "moderado", "desc": "Irregularidades moderadas" },
+        { "valor": "> 0,5", "nivel": "severo", "desc": "Forte atividade de bolhas ionosféricas (pós-pôr do sol equatorial)" }
+      ],
+      "efeitoGNSS": "Detecta as bolhas de plasma que degradam RTK e PPP. ROTI alto no período pós-pôr do sol na região equatorial brasileira antecipa cintilação e perda de precisão.",
+      "fonte": "Derivado de redes GNSS (IGS / EMBRACE)",
+      "fonteUrl": "http://www2.inpe.br/climaespacial/portal/",
+      "efeitoCena": { "bubbles": 0.9, "disturbance": 0.5, "ampScint": 0.5, "phaseScint": 0.5 }
+    },
+    {
+      "id": "s4",
+      "nome": "Índice S4",
+      "icone": "📉",
+      "cor": "#f472b6",
+      "categoria": "Cintilação de amplitude",
+      "unidade": "Adimensional",
+      "cadencia": "Janelas de 60 s",
+      "definicao": "Mede flutuações rápidas na intensidade do sinal GNSS causadas por irregularidades no plasma ionosférico, como as bolhas ionosféricas. É o desvio-padrão normalizado da potência do sinal num intervalo de 60 segundos.",
+      "faixas": [
+        { "valor": "< 0,3", "nivel": "calmo", "desc": "Cintilação desprezível" },
+        { "valor": "0,3 – 0,6", "nivel": "moderado", "desc": "Degradação moderada da precisão, risco de perda de ciclos" },
+        { "valor": "> 0,6", "nivel": "severo", "desc": "Cintilação severa — perda total de rastreio do satélite" }
+      ],
+      "efeitoGNSS": "Cintilação de amplitude: a potência do sinal oscila rapidamente e o receptor pode perder o rastreio. No Brasil, a região equatorial e a anomalia de Appleton são as mais afetadas, especialmente entre 20h e 24h (hora local).",
+      "fonte": "EMBRACE/INPE · redes de monitores ISMR",
+      "fonteUrl": "http://www2.inpe.br/climaespacial/portal/cintilacao/",
+      "efeitoCena": { "bubbles": 0.6, "ampScint": 1.0, "lock": 0.5 }
+    },
+    {
+      "id": "sigmaphi",
+      "nome": "σφ (Phi60)",
+      "icone": "〰️",
+      "cor": "#c084fc",
+      "categoria": "Cintilação de fase",
+      "unidade": "Radianos",
+      "cadencia": "Janelas de 60 s",
+      "definicao": "Mede flutuações na fase da onda portadora do sinal GNSS num intervalo de 60 segundos. Enquanto o S4 detecta variações de potência, o σφ captura variações de fase — ambos podem ocorrer juntos ou separados.",
+      "faixas": [
+        { "valor": "< 0,1 rad", "nivel": "calmo", "desc": "Fase estável" },
+        { "valor": "0,1 – 0,5 rad", "nivel": "moderado", "desc": "Degradação da solução de ambiguidade — compromete PPP e RTK" },
+        { "valor": "> 0,5 rad", "nivel": "severo", "desc": "Perda de rastreio de fase — inviabiliza aplicações geodésicas" }
+      ],
+      "efeitoGNSS": "Cintilação de fase: o receptor perde a coerência da portadora, comprometendo soluções de fase inteira (PPP/RTK) e causando cycle slips em níveis altos.",
+      "fonte": "EMBRACE/INPE · redes de monitores ISMR",
+      "fonteUrl": "http://www2.inpe.br/climaespacial/portal/cintilacao/",
+      "efeitoCena": { "bubbles": 0.5, "phaseScint": 1.0, "lock": 0.4 }
+    }
+  ]
+}

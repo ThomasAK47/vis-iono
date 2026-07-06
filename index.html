@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interferência Ionosférica no GNSS — Visualizador 3D</title>
+  <meta name="description" content="Visualizador 3D interativo de índices de interferência ionosférica e seus efeitos no sinal GNSS.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <header class="topbar">
+    <div class="header-titles">
+      <h1>Interferência Ionosférica <span class="h1-sub">Efeitos no sinal GNSS</span></h1>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="btn-reset" id="btnReset" title="Limpar efeitos da cena">↺ Cena calma</button>
+      <button type="button" class="btn-credits" id="btnCreditos">
+        <span class="btn-credits-ic" aria-hidden="true">ⓘ</span><span>Créditos</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Sidebar de cards -->
+  <aside class="sidebar" id="sidebar">
+    <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true">☰ Índices &amp; Fenômenos</button>
+    <div class="sidebar-scroll" id="sidebarScroll">
+      <h2 class="section-label">FENÔMENOS SOLARES</h2>
+      <div class="cards-group" id="cardsFenomenos"></div>
+      <h2 class="section-label">ÍNDICES IONOSFÉRICOS &amp; GEOMAGNÉTICOS</h2>
+      <div class="cards-group" id="cardsIndices"></div>
+    </div>
+  </aside>
+
+  <!-- Painel lateral de detalhes -->
+  <section class="detail-panel" id="detailPanel" hidden>
+    <button type="button" class="panel-close" id="panelClose" aria-label="Fechar">×</button>
+    <div class="panel-content" id="panelContent"></div>
+  </section>
+
+  <!-- Timeline segmentada -->
+  <footer class="timeline" id="timeline">
+    <div class="timeline-header">
+      <span class="timeline-title">TEMPO DE TRÂNSITO SOL → TERRA</span>
+      <div class="timeline-controls">
+        <span class="sim-clock" id="simClock" hidden>T+ <b id="simClockValue">0 min</b></span>
+        <button type="button" class="btn-speed" id="btnSpeed" title="Velocidade da animação">1×</button>
+      </div>
+    </div>
+    <div class="timeline-track" id="timelineTrack">
+      <div class="timeline-seg seg-luz">
+        <span class="seg-label">⚡ Luz — minutos</span>
+        <div class="seg-markers" data-seg="luz"></div>
+      </div>
+      <div class="timeline-seg seg-particulas">
+        <span class="seg-label">☄ Partículas — horas</span>
+        <div class="seg-markers" data-seg="particulas"></div>
+      </div>
+      <div class="timeline-seg seg-plasma">
+        <span class="seg-label">🌊 Plasma — dias</span>
+        <div class="seg-markers" data-seg="plasma"></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal de créditos -->
+  <div class="modal-overlay" id="modal-creditos" hidden>
+    <div class="modal modal-credits" role="dialog" aria-modal="true" aria-labelledby="creditosTitle" tabindex="-1">
+      <button type="button" class="modal-close" aria-label="Fechar">×</button>
+      <h2 id="creditosTitle" class="modal-title">Visualizador de Interferência Ionosférica</h2>
+      <p class="credits-subtitle">Ferramenta interativa 3D sobre índices de clima espacial, cintilação ionosférica e seus efeitos na propagação do sinal GNSS.</p>
+
+      <div class="modal-block">
+        <span class="modal-label">Desenvolvimento</span>
+        <p class="modal-text"><strong>Thomas Augusto Klotz</strong><br>Estudante de Geoprocessamento — UFSM</p>
+      </div>
+      <div class="modal-block">
+        <span class="modal-label">Contexto acadêmico</span>
+        <p class="modal-text">Curso de Geoprocessamento<br>Universidade Federal de Santa Maria — UFSM<br>Santa Maria, RS, Brasil</p>
+      </div>
+      <div class="modal-block">
+        <span class="modal-label">Fontes de dados e referências</span>
+        <p class="modal-text">NOAA SWPC · GFZ Potsdam · EMBRACE/INPE · WDC Kyoto · IGS</p>
+      </div>
+      <div class="modal-block">
+        <span class="modal-label">Tecnologias utilizadas</span>
+        <p class="modal-text">Three.js · Vanilla JS (ES Modules) · CSS3</p>
+      </div>
+
+      <p class="credits-footer">© 2026 Thomas Augusto Klotz — Uso acadêmico e educacional</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
