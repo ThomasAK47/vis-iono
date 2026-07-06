@@ -1,4 +1,5 @@
-// Cena base: Sol, Terra, ionosfera (shader), auroras polares e estrelas.
+// Cena base: Sol (shader de granulação + streamers), Terra, ionosfera (shader),
+// campo magnético terrestre (dipolo com compressão diurna e cauda), auroras e estrelas.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -40,6 +41,34 @@ function makeGlowTexture(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,180,60
   return new THREE.CanvasTexture(c);
 }
 
+// Streamers coronais (referência: coronógrafo SOHO/LASCO C2): raios radiais
+// em leque com brilho variável, desenhados numa textura de sprite.
+function makeStreamerTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const ctx = c.getContext('2d');
+  ctx.translate(256, 256);
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 34; i++) {
+    const ang = rnd() * Math.PI * 2;
+    const len = 120 + rnd() * 130;
+    const width = 0.05 + rnd() * 0.16;
+    const alpha = 0.05 + rnd() * 0.16;
+    const g = ctx.createRadialGradient(0, 0, 30, 0, 0, len);
+    g.addColorStop(0, `rgba(255,190,120,${alpha})`);
+    g.addColorStop(0.5, `rgba(255,150,80,${alpha * 0.55})`);
+    g.addColorStop(1, 'rgba(255,120,60,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, len, ang - width, ang + width);
+    ctx.closePath();
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
 // Textura estilizada da Terra (oceano + continentes procedurais).
 function makeEarthTexture() {
   const c = document.createElement('canvas');
@@ -75,6 +104,91 @@ function makeEarthTexture() {
   return tex;
 }
 
+// Ruído compartilhado pelos shaders (Sol e ionosfera)
+const GLSL_NOISE = /* glsl */`
+  float hash(vec3 p) {
+    return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+  }
+  float noise(vec3 p) {
+    vec3 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
+          mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+      mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+          mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+  }
+  float fbm(vec3 p) {
+    float v = 0.0, a = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += a * noise(p);
+      p *= 2.1;
+      a *= 0.5;
+    }
+    return v;
+  }
+`;
+
+// Superfície solar (referência: SDO/AIA 304 Å): granulação fina vermelho-
+// alaranjada, filamentos escuros serpenteando, regiões ativas amarelo-brancas
+// e limbo brilhante difuso.
+const SUN_VERT = /* glsl */`
+  varying vec3 vObjPos;
+  varying vec3 vNormalW;
+  varying vec3 vWorldPos;
+  void main() {
+    vObjPos = normalize(position);
+    vNormalW = normalize(mat3(modelMatrix) * normal);
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vWorldPos = wp.xyz;
+    gl_Position = projectionMatrix * viewMatrix * wp;
+  }
+`;
+
+const SUN_FRAG = /* glsl */`
+  uniform float uTime;
+  uniform float uActivity;
+  uniform float uFlash;
+  varying vec3 vObjPos;
+  varying vec3 vNormalW;
+  varying vec3 vWorldPos;
+  ${GLSL_NOISE}
+
+  void main() {
+    vec3 p = vObjPos;
+
+    // Granulação fina (mosqueado da cromosfera)
+    float gran = fbm(p * 16.0 + vec3(uTime * 0.02, 0.0, -uTime * 0.015));
+    // Estrutura média (manchas claras/escuras maiores)
+    float mid = fbm(p * 5.0 + vec3(0.0, uTime * 0.008, 0.0));
+    // Filamentos escuros (linhas serpenteantes)
+    float fil = fbm(p * 3.2 + vec3(4.7, 9.1, 1.3));
+    float filament = smoothstep(0.02, 0.06, abs(fil - 0.5));
+
+    // Rampa de cor: vermelho profundo -> laranja vivo
+    vec3 deep = vec3(0.55, 0.10, 0.03);
+    vec3 hot  = vec3(1.00, 0.45, 0.10);
+    vec3 col = mix(deep, hot, clamp(mid * 0.7 + gran * 0.55, 0.0, 1.0));
+    col *= 0.75 + 0.5 * gran;       // textura granulada
+    col *= 0.72 + 0.28 * filament;  // filamentos escurecem
+
+    // Regiões ativas: bolsões amarelo-brancos, mais numerosos com atividade alta
+    float ar = fbm(p * 2.4 + vec3(11.0, 3.0, 7.0));
+    float activeReg = smoothstep(0.66 - uActivity * 0.10, 0.80 - uActivity * 0.08, ar);
+    col = mix(col, vec3(1.0, 0.92, 0.62), activeReg * (0.75 + uActivity * 0.25));
+
+    // Limbo brilhante (em EUV a borda é mais clara e difusa)
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+    float rim = pow(1.0 - abs(dot(viewDir, normalize(vNormalW))), 2.0);
+    col += vec3(1.0, 0.55, 0.22) * rim * (0.55 + uActivity * 0.3);
+
+    // Flash de flare: clarão geral
+    col += vec3(1.0, 0.97, 0.88) * uFlash * 0.8;
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
 const IONO_VERT = /* glsl */`
   varying vec3 vNormal;
   varying vec3 vWorldPos;
@@ -94,19 +208,7 @@ const IONO_FRAG = /* glsl */`
   uniform vec3 uSunDir;
   varying vec3 vNormal;
   varying vec3 vWorldPos;
-
-  float hash(vec3 p) {
-    return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
-  }
-  float noise(vec3 p) {
-    vec3 i = floor(p), f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
-          mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-      mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
-          mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
-  }
+  ${GLSL_NOISE}
 
   void main() {
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
@@ -137,6 +239,77 @@ const IONO_FRAG = /* glsl */`
     gl_FragColor = vec4(col, clamp(alpha, 0.0, 0.9));
   }
 `;
+
+// Linhas de campo do dipolo terrestre: r = L·cos²(λ). Compressão do lado
+// diurno (pressão do vento solar) e alongamento em cauda no lado noturno,
+// ambos intensificados durante tempestades.
+function createMagnetosphere(scene) {
+  const L_SHELLS = [1.7, 2.3, 3.1, 4.0];
+  const N_LON = 10;
+  const STEPS = 48;
+  const lines = [];
+  const group = new THREE.Group();
+  group.rotation.z = 0.19; // inclinação ~11° do eixo do dipolo
+
+  const colorCalm = new THREE.Color(0x4fc3f7);
+  const colorStorm = new THREE.Color(0x9dffb0);
+
+  for (const L of L_SHELLS) {
+    const lamMax = Math.acos(Math.sqrt(1 / L));
+    for (let j = 0; j < N_LON; j++) {
+      const lon = (j / N_LON) * Math.PI * 2;
+      const base = new Float32Array((STEPS + 1) * 3);
+      for (let i = 0; i <= STEPS; i++) {
+        const lam = -lamMax + (i / STEPS) * 2 * lamMax;
+        const r = L * Math.cos(lam) * Math.cos(lam) * EARTH_RADIUS;
+        const horiz = r * Math.cos(lam);
+        base[i * 3] = horiz * Math.cos(lon);
+        base[i * 3 + 1] = r * Math.sin(lam);
+        base[i * 3 + 2] = horiz * Math.sin(lon);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(base.slice(), 3));
+      const mat = new THREE.LineBasicMaterial({
+        color: colorCalm.clone(), transparent: true, opacity: 0.16,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      const line = new THREE.Line(geo, mat);
+      line.frustumCulled = false;
+      group.add(line);
+      lines.push({ base, geo, mat });
+    }
+  }
+  scene.add(group);
+
+  const toSun = SUN_POS.clone().normalize(); // direção Terra -> Sol
+  const p = new THREE.Vector3();
+
+  function update(storm) {
+    const compress = 0.10 + 0.28 * storm;
+    const tail = 0.22 + 0.55 * storm;
+    for (const l of lines) {
+      const pos = l.geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        p.set(l.base[i * 3], l.base[i * 3 + 1], l.base[i * 3 + 2]);
+        const r = p.length();
+        if (r > 0.001) {
+          const s = p.dot(toSun) / r; // +1 lado diurno, -1 lado noturno
+          if (s > 0) {
+            p.multiplyScalar(1 - compress * Math.pow(s, 1.5));
+          } else {
+            p.addScaledVector(toSun, -r * tail * s * s * ((r / EARTH_RADIUS) / 4));
+          }
+        }
+        pos.setXYZ(i, p.x, p.y, p.z);
+      }
+      pos.needsUpdate = true;
+      l.mat.opacity = 0.14 + storm * 0.30;
+      l.mat.color.copy(colorCalm).lerp(colorStorm, storm * 0.8);
+    }
+  }
+
+  return { update };
+}
 
 export function createScene(container) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -180,18 +353,33 @@ export function createScene(container) {
   // ===== Sol =====
   const sunGroup = new THREE.Group();
   sunGroup.position.copy(SUN_POS);
+  const sunUniforms = {
+    uTime: { value: 0 },
+    uActivity: { value: 0 },
+    uFlash: { value: 0 }
+  };
   const sunMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(16, 48, 48),
-    new THREE.MeshBasicMaterial({ color: 0xffc94d })
+    new THREE.SphereGeometry(16, 64, 64),
+    new THREE.ShaderMaterial({ vertexShader: SUN_VERT, fragmentShader: SUN_FRAG, uniforms: sunUniforms })
   );
   sunGroup.add(sunMesh);
-  const glowTex = makeGlowTexture('rgba(255,200,90,1)', 'rgba(255,140,40,0)');
+
+  const glowTex = makeGlowTexture('rgba(255,170,80,1)', 'rgba(255,110,40,0)');
   const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: glowTex, color: 0xffb347, transparent: true, opacity: 0.9,
+    map: glowTex, color: 0xff9a45, transparent: true, opacity: 0.75,
     blending: THREE.AdditiveBlending, depthWrite: false
   }));
-  sunGlow.scale.setScalar(70);
+  sunGlow.scale.setScalar(66);
   sunGroup.add(sunGlow);
+
+  // Streamers coronais (leque de raios radiais, gira lentamente)
+  const streamers = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeStreamerTexture(), color: 0xffc080, transparent: true, opacity: 0.5,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  streamers.scale.setScalar(120);
+  sunGroup.add(streamers);
+
   const flareGlow = new THREE.Sprite(new THREE.SpriteMaterial({
     map: glowTex, color: 0xffffff, transparent: true, opacity: 0,
     blending: THREE.AdditiveBlending, depthWrite: false
@@ -258,6 +446,9 @@ export function createScene(container) {
 
   scene.add(earthGroup);
 
+  // ===== Campo magnético terrestre =====
+  const magnetosphere = createMagnetosphere(scene);
+
   const ctx = {
     renderer, scene, camera, controls,
     earthGroup, earthMesh, ionoUniforms, sunGlow, flareGlow, auroras,
@@ -269,20 +460,31 @@ export function createScene(container) {
     const e = effects.current;
 
     earthMesh.rotation.y += dt * 0.03;
+    sunMesh.rotation.y += dt * 0.008;
+    streamers.material.rotation += dt * 0.012;
     ionoUniforms.uTime.value = ctx.elapsed;
     ionoUniforms.uDisturbance.value = e.disturbance;
     ionoUniforms.uBubbles.value = e.bubbles;
     ionoUniforms.uFlash.value = e.flash;
 
+    sunUniforms.uTime.value = ctx.elapsed;
+    sunUniforms.uActivity.value = e.sun;
+    sunUniforms.uFlash.value = e.flash;
+
     // Sol: brilho cresce com atividade + flash de flare
     const pulse = 1 + Math.sin(ctx.elapsed * 2.2) * 0.02;
-    sunGlow.scale.setScalar((70 + e.sun * 22) * pulse);
-    sunGlow.material.opacity = 0.85 + e.sun * 0.15;
+    sunGlow.scale.setScalar((66 + e.sun * 22) * pulse);
+    sunGlow.material.opacity = 0.7 + e.sun * 0.25;
+    streamers.material.opacity = 0.42 + e.sun * 0.3;
+    streamers.scale.setScalar(120 + e.sun * 25);
     flareGlow.material.opacity = e.flash * 0.9;
     flareGlow.scale.setScalar(90 + e.flash * 55);
 
     // Auroras
     for (const a of auroras) a.material.opacity = Math.min(0.75, e.poles * 0.7 + e.storm * 0.25);
+
+    // Magnetosfera: comprime e brilha com a tempestade
+    magnetosphere.update(e.storm);
 
     controls.update();
     renderer.render(scene, camera);

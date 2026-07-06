@@ -1,4 +1,36 @@
 {
+  "eventos": [
+    {
+      "id": "gannon",
+      "nome": "Tempestade Gannon",
+      "icone": "🌌",
+      "cor": "#f43f5e",
+      "subtitulo": "10–11 de maio de 2024 — G5, a maior tempestade em 21 anos",
+      "transitoLabel": "Flare: 8 min · CMEs: ~1,6 dia",
+      "definicao": "Entre 8 e 11 de maio de 2024, a região ativa AR3664 (16x o diâmetro da Terra) produziu dezenas de flares — incluindo um X5.8 — e lançou ao menos 6 CMEs quase consecutivas em direção à Terra. As nuvens se fundiram no caminho e chegaram juntas, disparando a primeira tempestade G5 (extrema) desde 2003. Auroras foram vistas até o México e o norte da Argentina.",
+      "mecanismo": "Cronologia: 8/mai — flares X e primeira CME (~8 min depois de cada flare, o lado diurno da ionosfera já sofria blecautes de rádio). 10/mai 16:37 UTC — o choque combinado das CMEs atinge a magnetosfera ~37 h depois do lançamento; Bz caiu a ~−50 nT e o acoplamento foi máximo. 10–11/mai — Kp cravou 9, o Dst despencou a −412 nT e a ionosfera global entrou em tempestade, com bolhas de plasma e gradientes extremos de TEC.",
+      "efeitoGNSS": "Efeitos documentados: receptores RTK de agricultura de precisão nos EUA e Canadá ficaram horas sem solução fixa em plena época de plantio (prejuízo estimado em centenas de milhões de dólares); redes RTK e PPP degradadas no mundo todo; cintilação severa e perda de lock na América do Sul; aumento de arrasto derrubou a altitude de milhares de satélites em órbita baixa.",
+      "faixaTipica": "Flare X5.8 · Kp 9 (G5) · Dst −412 nT · vento ~750 km/s · Bz ~−50 nT",
+      "fonte": "NOAA SWPC — G5 Watch/Warnings de maio de 2024",
+      "fonteUrl": "https://www.swpc.noaa.gov/news/swpc-issues-its-first-g4-watch-2005",
+      "sequencia": [
+        {
+          "estilo": "flare",
+          "nome": "Tempestade Gannon — flare X5.8",
+          "animDur": 3,
+          "transitoSegundos": 500,
+          "efeitoCena": { "sun": 1.0, "flash": 1.0, "disturbance": 0.7, "tecBend": 0.7, "phaseScint": 0.3 }
+        },
+        {
+          "estilo": "cme",
+          "nome": "Tempestade Gannon — trem de CMEs",
+          "animDur": 8,
+          "transitoSegundos": 133200,
+          "efeitoCena": { "storm": 1.0, "disturbance": 1.0, "bubbles": 1.0, "ampScint": 1.0, "phaseScint": 0.9, "tecBend": 1.0, "lock": 0.9, "poles": 1.0, "sun": 0.8 }
+        }
+      ]
+    }
+  ],
   "fenomenos": [
     {
       "id": "flare",

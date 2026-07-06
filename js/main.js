@@ -1,4 +1,5 @@
-// Bootstrap: monta cena, satélites, sinais, fenômenos, UI e timeline.
+// Bootstrap: monta cena, satélites, sinais, fenômenos, UI, timeline e
+// dados ao vivo; orquestra sequências de eventos históricos (flare -> CME).
 import { loadData } from './data.js';
 import { createScene, setEffectTargets, updateEffects } from './scene.js';
 import { createSatellites } from './satellites.js';
@@ -6,6 +7,7 @@ import { createSignals } from './signal.js';
 import { createPhenomena } from './phenomena.js';
 import { createTimeline } from './timeline.js';
 import { createUI } from './ui.js';
+import { startLiveData } from './livedata.js';
 
 async function init() {
   const data = await loadData();
@@ -15,6 +17,7 @@ async function init() {
   const signals = createSignals(sceneCtx, satsApi);
 
   let activeId = null;
+  let sequenceQueue = [];   // fases restantes de um evento histórico
 
   const timeline = createTimeline(data, (id) => select(id));
 
@@ -24,21 +27,46 @@ async function init() {
     (item, progress) => {
       if (progress < 1) timeline.tick(item, progress);   // relógio simulado
     },
-    (item) => {                                          // fim do fenômeno
-      if (activeId === item.id) setEffectTargets({});    // cena volta a acalmar
+    (item) => {                                          // fim de uma fase
+      if (sequenceQueue.length > 0) {
+        phenomena.launch(sequenceQueue.shift(), timeline.speed);
+      } else if (activeId && (item.id === activeId || item.eventoId === activeId)) {
+        setEffectTargets({});                            // cena volta a acalmar
+      }
     }
   );
 
   const ui = createUI(data, {
     onSelect: (id) => select(id),
     onClear: () => clearSelection(),
-    onReplay: (id) => startPhenomenon(data.byId[id])
+    onReplay: (id) => startItem(data.byId[id])
   });
 
-  function startPhenomenon(item) {
-    timeline.setActive(item.id);
+  startLiveData((byCard) => ui.updateLive(byCard));
+
+  // Constrói as fases de um evento histórico como itens sintéticos
+  function eventPhases(evento) {
+    return evento.sequencia.map((fase) => ({
+      ...fase,
+      id: `${evento.id}-${fase.estilo}`,
+      eventoId: evento.id,
+      icone: evento.icone,
+      cor: evento.cor
+    }));
+  }
+
+  function startItem(item) {
+    sequenceQueue = [];
+    timeline.setActive(item.tipo === 'fenomeno' ? item.id : null);
     setEffectTargets({});          // cena acalma enquanto as partículas viajam
-    phenomena.launch(item, timeline.speed);
+
+    if (item.tipo === 'evento') {
+      const phases = eventPhases(item);
+      sequenceQueue = phases.slice(1);
+      phenomena.launch(phases[0], timeline.speed);
+    } else {
+      phenomena.launch(item, timeline.speed);
+    }
   }
 
   function select(id) {
@@ -50,17 +78,19 @@ async function init() {
     ui.setActive(id);
     ui.showPanel(item);
 
-    if (item.tipo === 'fenomeno') {
-      startPhenomenon(item);
-    } else {
+    if (item.tipo === 'indice') {
+      sequenceQueue = [];
       phenomena.stop();
       timeline.clear();
       setEffectTargets(item.efeitoCena);
+    } else {
+      startItem(item);
     }
   }
 
   function clearSelection() {
     activeId = null;
+    sequenceQueue = [];
     ui.setActive(null);
     ui.hidePanel();
     phenomena.stop();

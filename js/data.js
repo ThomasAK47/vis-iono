@@ -4,6 +4,7 @@ export async function loadData() {
   if (!resp.ok) throw new Error(`Falha ao carregar indices.json (${resp.status})`);
   const data = await resp.json();
   const byId = {};
+  for (const e of data.eventos ?? []) byId[e.id] = { ...e, tipo: 'evento' };
   for (const f of data.fenomenos) byId[f.id] = { ...f, tipo: 'fenomeno' };
   for (const i of data.indices) byId[i.id] = { ...i, tipo: 'indice' };
   return { ...data, byId };

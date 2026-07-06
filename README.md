@@ -6,7 +6,17 @@ Visualizador 3D interativo sobre índices de clima espacial, cintilação ionosf
 
 ## O que ele mostra
 
-Cena 3D (Three.js) com Sol, Terra, camada ionosférica, constelação GNSS e os caminhos de sinal até uma estação terrestre. Os caminhos são retos em condições calmas e ficam **curvados** (atraso/refração por TEC), **ondulados** (cintilação de fase), **piscando** (cintilação de amplitude) ou **caem** (perda de lock) conforme o índice ou fenômeno selecionado.
+Cena 3D (Three.js) com Sol, Terra, camada ionosférica, **campo magnético terrestre** (dipolo que comprime no lado diurno e forma cauda durante tempestades), constelação GNSS e os caminhos de sinal até uma estação terrestre. Os caminhos são retos em condições calmas e ficam **curvados** (atraso/refração por TEC), **ondulados** (cintilação de fase), **piscando** (cintilação de amplitude) ou **caem** (perda de lock) conforme o índice ou fenômeno selecionado.
+
+O visual do Sol e das partículas segue imagens reais: granulação e regiões ativas do **SDO/AIA 304 Å**, streamers coronais e frente de CME do coronógrafo **SOHO/LASCO C2**, fótons como estrias em feixe, prótons SEP com gyração helicoidal e vento solar com curvatura de espiral de Parker.
+
+### Dados em tempo real (NOAA SWPC)
+
+Os cards de Kp, Dst, F10.7, flare (raios-X GOES), SEP (prótons ≥10 MeV) e vento solar (velocidade + Bz) mostram o **valor atual** consultado diretamente nos JSONs públicos do NOAA SWPC (atualização a cada 5 min, com fallback silencioso). Os índices do EMBRACE/INPE não têm feed JSON público e permanecem educacionais.
+
+### Evento histórico — Tempestade Gannon (maio/2024)
+
+Card especial que reproduz em sequência o flare X5.8 (chegada em 8 min) e o trem de CMEs (~37 h) da maior tempestade geomagnética em 21 anos (G5, Kp 9, Dst −412 nT), com os efeitos documentados no GNSS.
 
 ### Fenômenos solares (animação Sol → Terra)
 
